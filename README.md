@@ -1,1 +1,139 @@
 # busy-busy-redux
+
+
+- [busy-busy-redux](#busy-busy-redux)
+- [Installation of Redux](#installation-of-redux)
+  - [Reducer](#reducer)
+  - [Store](#store)
+    - [thunkAPI](#thunkapi)
+
+
+
+# Installation of Redux
+```javascript
+npm install react-redux
+```
+## Reducer
+In the context of Redux, a reducer is a pure function that specifies how the application's state changes in response to dispatched actions. It is one of the core concepts of Redux and plays a central role in managing the state of your application.
+
+A reducer takes two arguments: the current state and an action. The state represents the current state of your application, and the action is a plain JavaScript object that describes the type of change you want to make to the state. The reducer then calculates the new state based on the action and returns the updated state.
+
+**The initial state** is provided as the default value for the state argument: When the Redux store is first created or when an unknown action type is dispatched, the reducer returns the initial state.
+
+* **Reducer Syntax in React-Redux (Traditional Redux):**
+In traditional Redux with **react-redux**, reducers are defined as pure functions that take the current state and an action as arguments and return a new state based on the action's type and payload. The reducer function is responsible for handling different action types and updating the state accordingly.
+
+**the "state" refers to the current state of the specific reducer's slice, not the entire store state.**
+
+ when you define a slice using the createSlice function, you are creating a specific slice reducer that will manage a portion of the overall store state. The state parameter inside the reducer functions of this slice refers to the current state of that specific slice, not the entire store state.
+```js
+
+
+**name**: The name of the slice, which is used to generate the action types automatically. In this case, the slice is named 'user'.
+
+**initialState**: The initial state of the slice. In this case, the user property is set to null initially.
+
+**reducers**: An object that contains reducer functions. These reducer functions handle different actions and modify the state accordingly. In this case, the setUser and logoutUser reducers are defined.
+
+ #### (state,action)=>{}
+
+ * **state**
+   The state in Redux should be treated as immutable. This means that you should not directly modify the state. Instead, you create a new state object that reflects the desired changes based on the current state and the dispatched action.
+
+* **action**
+ An "action" is a plain JavaScript object that represents an intention to change the state. It is the only way to communicate with the Redux store to update the state. An action must have a type property, which indicates the type of action being performed, and it can also have additional data called "payload," which contains any necessary information to update the state.
+
+---
+
+## Action
+
+   In Redux, "actions" represent an intention to change the state of your application. An action is a plain JavaScript object that describes what happened or what event occurred in your application. Actions are the only way to communicate with the Redux store and trigger updates to the state.
+
+   Actions must have a type property that describes the type of action being performed. The type property is usually defined as a string, but it can be any value that uniquely identifies the action. By convention, action type strings are written in uppercase and often use snake_case or UPPERCASE_SNAKE_CASE.
+
+   **a simple action object**
+   ```js
+   const setUserAction = {
+  type: 'SET_USER',
+  payload: {
+    name: 'John',
+    age: 30,
+  },
+};
+ ```
+
+ In **react-redux**, action objects are created using "action creators." Action creators are functions that return action objects, encapsulating the logic of creating actions and making it easier to dispatch actions from different parts of the application.
+```js
+// Action Creator
+const setUser = (userData) => {
+  return {
+    type: 'SET_USER',
+    payload: userData,
+  };
+};
+
+// Dispatching the action
+dispatch(setUser({ name: 'John', age: 30 }));
+```
+In **@reduxjs/toolkit**, action objects are automatically generated when using the createSlice function. The createSlice function defines reducer functions, along with their corresponding action types and action creators.
+```js
+import { createSlice } from '@reduxjs/toolkit';
+
+const userSlice = createSlice({
+  name: 'user',
+  initialState,
+  reducers: {
+    setUser: (state, action) => {...},
+  },
+});
+
+export const { setUser } = userSlice.actions;
+export default userSlice.reducer;
+
+// Dispatching the action
+dispatch(setUser({ name: 'John', age: 30 }));
+```
+**internally it looks like**
+```js
+// The automatically generated userSlice.actions object
+const actions = {
+  setUser: (state, action) => { ... },
+};
+```
+
+In both cases, setUser is the action creator (manually created in the react-redux example and automatically generated by @reduxjs/toolkit). The action creator returns an action object that can be dispatched to the Redux store to update the state.
+
+---
+
+## Store
+  The store is a central component in Redux that holds the entire state tree of your application. It represents a single source of truth and is responsible for managing the state and handling state updates in a predictable and consistent manner. The store is created using the createStore function provided by the Redux library.
+
+  Redux uses a single store with a single root reducer that may be composed of multiple smaller reducers (commonly referred to as "slice reducers"). These slice reducers manage specific parts of the application state, and the root reducer combines them into the overall state tree.
+
+ 
+In this approach, you directly reference the action type string "todo/getInitialState/fulfilled". While this works, using the string directly can be more error-prone, as it is prone to typos and can be harder to maintain in the long run.
+
+In both cases, the extraReducers block listens for the fulfilled action of the createAsyncThunk (getInitialState) and updates the todos state in the Redux store with the fetched data when the API call is successful.
+
+in this example, createAsyncThunk will automatically dispatch the "pending" action when the getInitialState async thunk is initiated, and it will dispatch the "fulfilled" action with the resolved data when the promise is successfully resolved.
+
+By using the action creator function, you get the following benefits:
+
+**Type Safety**: Since the action creator function is generated by Redux Toolkit, it ensures that you are using the correct action type in your reducer. The action creator function knows the exact action type ("todo/getInitialState/fulfilled") to dispatch, so you don't have to manually write the action type string, reducing the risk of typos or mistakes.
+
+**Refactoring**: If you ever change the type prefix or the lifecycle status names for the async thunk, the action creator functions will be automatically updated, ensuring that you're always using the correct action types, even if you refactor your code.
+
+**Readability and Maintainability**: Using the action creator function makes your code more readable and maintainable. It's easier to understand what the action does when you see getInitialState.fulfilled compared to a manually written action type string like "todo/getInitialState/fulfilled".
+
+---
+
+### thunkAPI
+**thunkAPI** is an object provided by Redux Toolkit to async thunks (functions created with createAsyncThunk). It contains useful utilities and information that can be used inside the async thunk function.
+
+The thunkAPI object has the following properties:
+
+**dispatch**: A function that allows you to dispatch actions from within the async thunk. You can use it to dispatch other actions or even other async thunks. **thunkAPI.dispatch(action(payload))**
+
+**getState**: A function that allows you to access the current Redux state. You can use it to retrieve the current state of the store and use it in your async thunk logic. **thunkAPI.getState()**
+
+**extra**: An optional property where you can access any extra argument or configuration you passed to createAsyncThunk as the extraReducers argument. This can be useful for accessing additional data or services required for your async operation.
